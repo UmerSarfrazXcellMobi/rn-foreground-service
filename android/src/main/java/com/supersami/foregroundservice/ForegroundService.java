@@ -113,6 +113,12 @@ public class ForegroundService extends Service {
         }
     }
 
+      public void emitNotificationClickedButtonText(String buttonText){
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("notificationClickedButtonText", buttonText);
+    }
+
     private int mapServiceType(String customServiceType) {
         switch (customServiceType) {
             case "camera":

@@ -86,7 +86,7 @@ class ForegroundService {
    */
   static async cancelNotification(id) {
     console.log('Cancel Service Triggered');
-    return await ForegroundServiceModule.cancelNotification({id: id});
+    return await ForegroundServiceModule.cancelNotification({ id: id });
   }
 
   /**
@@ -179,11 +179,14 @@ const taskRunner = async () => {
   }
 };
 
-const register = ({config: {alert, onServiceErrorCallBack}}) => {
+const register = ({ config: { alert, onServiceErrorCallBack, onNotificationButtonClickCallBack } }) => {
+  setupNotificationClickedButtonListener({ onNotificationButtonClick: onNotificationButtonClickCallBack });
+
   if (!serviceRunning) {
     setupServiceErrorListener({
       alert,
       onServiceFailToStart: onServiceErrorCallBack,
+      onNotificationButtonClick: onNotificationButtonClickCallBack
     });
     return ForegroundService.registerForegroundTask('myTaskName', taskRunner);
   }
@@ -327,8 +330,8 @@ const add_task = (
     delay = 5000,
     onLoop = true,
     taskId = randHashString(12),
-    onSuccess = () => {},
-    onError = () => {},
+    onSuccess = () => { },
+    onError = () => { },
   },
 ) => {
   const _type = typeof task;
@@ -355,8 +358,8 @@ const update_task = (
     delay = 5000,
     onLoop = true,
     taskId = randHashString(12),
-    onSuccess = () => {},
-    onError = () => {},
+    onSuccess = () => { },
+    onError = () => { },
   },
 ) => {
   const _type = typeof task;
@@ -398,7 +401,7 @@ const eventListener = callBack => {
 };
 
 const eventEmitter = new NativeEventEmitter(ForegroundServiceModule);
-export function setupServiceErrorListener({onServiceFailToStart, alert}) {
+export function setupServiceErrorListener({ onServiceFailToStart, alert, onNotificationButtonClick }) {
   const listener = eventEmitter.addListener('onServiceError', message => {
     alert && Alert.alert('Service Error', message);
     if (onServiceFailToStart) {
@@ -406,9 +409,19 @@ export function setupServiceErrorListener({onServiceFailToStart, alert}) {
     }
     stop();
   });
-
   return () => {
     listener.remove();
+  };
+}
+
+export function setupNotificationClickedButtonListener({ onNotificationButtonClick }) {
+  const notificationButtonClicklistener = eventEmitter.addListener('notificationClickedButtonText', clickedBtnAction => {
+    console.log("notificationClickedButtonAction:", clickedBtnAction);
+    onNotificationButtonClick(clickedBtnAction);
+  });
+
+  return () => {
+    notificationButtonClicklistener.remove();
   };
 }
 
